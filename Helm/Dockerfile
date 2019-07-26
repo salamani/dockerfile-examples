@@ -16,40 +16,19 @@
 
 #########################################################################################################################
 
-
 #Base image
-FROM s390x/ubuntu:16.04
+FROM alpine:3.7
 
-#Set Environment Variables
-ENV GOPATH=/go PATH=/usr/lib/go-1.9/bin:$GOPATH/linux-s390x:$PATH
-
-#Install dependencies
-RUN apt-get update -y &&   apt-get install -y git make mercurial wget golang-1.9 bash\
-
-#Install glide
-&& wget https://github.com/Masterminds/glide/releases/download/v0.13.0/glide-v0.13.0-linux-s390x.tar.gz \
-&&  tar -xzf glide-v0.13.0-linux-s390x.tar.gz && rm -rf glide-v0.13.0-linux-s390x.tar.gz \
+# The author
+LABEL maintainer="LoZ Open Source Ecosystem (https://www.ibm.com/developerworks/community/groups/community/lozopensource)"
 
 #Build Helm
-&&  mkdir -p $GOPATH/src/k8s.io \
-&&  cd $GOPATH/src/k8s.io \
-&&  git clone https://github.com/kubernetes/helm.git \
-&&  cd helm \
-&&  git checkout v2.11.0 \
-&&  cd $GOPATH/src/k8s.io/helm \
-&&  make bootstrap build \
-&&  cp -Rf  $GOPATH/src/k8s.io/helm /helm \
-&&  cd /helm/bin \
+RUN wget https://get.helm.sh/helm-v2.13.1-linux-s390x.tar.gz \
+&&  tar -xzvf helm-v2.13.1-linux-s390x.tar.gz \
+&&  sudo mv linux-s390x/helm /usr/bin \
+&&    sudo mv linux-s390x/tiller /usr/bin \
 # Clean up cache , source data and un-used packages
-&& apt-get remove -y \
-        git \
-        make \
-        wget \
-        mercurial \
-        golang-1.9 \
- && apt-get autoremove -y \
- && apt autoremove -y \
- && apt-get clean && rm -rf /var/lib/apt/lists/* && rm -rf $GOPATH
+&& rm -rf linux-s390x helm-v2.13.1-linux-s390x.tar.gz
 EXPOSE 44134
 ENV  PATH=/helm/bin:$PATH  HELM_HOST=localhost:44134
 CMD ["tiller"]
